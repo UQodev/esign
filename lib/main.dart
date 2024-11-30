@@ -1,6 +1,17 @@
+import 'package:esign/core/config/supabase_config.dart';
+import 'package:esign/injection.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await configureDependencies();
+
+  await Supabase.initialize(
+      url: SupabaseConfig.SUPABSE_URL,
+      anonKey: SupabaseConfig.SUPABASE_ANON_KEY);
+
   runApp(const MyApp());
 }
 
