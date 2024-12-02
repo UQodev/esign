@@ -1,7 +1,6 @@
 import 'package:esign/presentation/pages/auth/registerPage.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,7 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 215, 236, 255),
+      backgroundColor: const Color.fromARGB(255, 215, 236, 255),
       body: SafeArea(
         child: Container(
           // color: Colors.blue,
@@ -41,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.black.withOpacity(0.2),
                       spreadRadius: -3,
                       blurRadius: 3,
-                      offset: Offset(1, 8),
+                      offset: const Offset(1, 8),
                     ),
                   ],
                 ),
@@ -80,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Color(0xff000000),
                     ),
                     filled: true,
-                    fillColor: Color.fromARGB(255, 127, 180, 244),
+                    fillColor: const Color.fromARGB(255, 127, 180, 244),
                     isDense: false,
                     contentPadding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                     border: OutlineInputBorder(
@@ -97,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.black.withOpacity(0.2),
                       spreadRadius: -3,
                       blurRadius: 3,
-                      offset: Offset(1, 8),
+                      offset: const Offset(1, 8),
                     ),
                   ],
                 ),
@@ -136,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Color(0xff000000),
                     ),
                     filled: true,
-                    fillColor: Color.fromARGB(255, 127, 180, 244),
+                    fillColor: const Color.fromARGB(255, 127, 180, 244),
                     isDense: false,
                     contentPadding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                   ),
@@ -158,7 +157,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 30),
               MaterialButton(
                 onPressed: () {},
-                color: Color.fromARGB(255, 39, 90, 179),
+                color: const Color.fromARGB(255, 39, 90, 179),
                 elevation: 15,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8)),
