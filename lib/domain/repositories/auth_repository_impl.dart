@@ -11,6 +11,7 @@ import 'package:crypto/crypto.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final SupabaseClient supabase;
   final String jwtSecret = 'jwtSecret';
+  User? _currentUser;
 
   AuthRepositoryImpl(this.supabase);
 
@@ -43,6 +44,8 @@ class AuthRepositoryImpl implements AuthRepository {
           .select()
           .single();
 
+      print('Register response: $response');
+
       final user = User(
         id: response['id'],
         name: response['name'],
@@ -54,6 +57,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return Right(user);
     } catch (e) {
+      print('Register error : $e');
       return Left(ServerFailure());
     }
   }
@@ -62,21 +66,29 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, User>> login(String email, String password) async {
     try {
       final hashedPassword = _hashPassword(password);
+      final token = _generateToken(email);
 
-      final response = await supabase.from('users').select().match({
-        'email': email,
-        'password': hashedPassword,
-      }).single();
+      final response = await supabase
+          .from('users')
+          .update({'remember_token': token})
+          .match({
+            'email': email,
+            'password': hashedPassword,
+          })
+          .select()
+          .single();
 
       final user = User(
         id: response['id'],
         name: response['name'],
         email: response['email'],
-        token: _generateToken(response['id']),
+        token: token,
+        rememberToken: response['remember_token'],
         createdAt: DateTime.parse(response['created_at']),
         updatedAt: DateTime.parse(response['updated_at']),
       );
 
+      _currentUser = user;
       return Right(user);
     } catch (e) {
       return Left(ServerFailure());
@@ -85,10 +97,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   Future<Either<Failure, void>> logout() async {
     try {
+      if (_currentUser?.rememberToken != null) {
+        await supabase.from('users').update({'remember_token': null}).match({
+          'remember_token': _currentUser!.rememberToken!
+        }); // Non-null assertion karena sudah di check
+      }
+
+      _currentUser = null;
       await supabase.auth.signOut();
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure());
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 }

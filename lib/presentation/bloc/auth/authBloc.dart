@@ -23,8 +23,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result =
           await repository.register(event.name, event.email, event.password);
 
-      result.fold((failure) => emit(AuthError('Registrasi Gagal')),
+      result.fold((failure) => emit(AuthError(failure.message)),
           (user) => emit(AuthSuccess(user)));
+    });
+
+    on<LogoutEvent>((event, emit) async {
+      emit(AuthLoading());
+
+      final result = await repository.logout();
+
+      result.fold(
+        (failure) => emit(AuthError(failure.message)),
+        (_) => emit(AuthInitial()),
+      );
     });
   }
 }
