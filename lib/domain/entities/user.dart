@@ -1,8 +1,9 @@
 class User {
-  final int id;
+  final String id;
   final String name;
   final String email;
   final String? token;
+  final String? rememberToken;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -11,6 +12,7 @@ class User {
     required this.name,
     required this.email,
     this.token,
+    this.rememberToken,
     this.createdAt,
     this.updatedAt,
   });
