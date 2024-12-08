@@ -1,5 +1,6 @@
+import 'package:esign/core/utils/validators.dart';
 import 'package:esign/injection.dart';
-import 'package:esign/presentation/bloc/auth/authBloc.dart';
+import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/bloc/auth/authEvent.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart';
 import 'package:esign/presentation/pages/auth/login_page.dart';
@@ -27,24 +28,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  bool isValidUsername(String username) {
-    final RegExp nameRegExp = RegExp(r'^[a-zA-Z ]{3,50}$');
-    return nameRegExp.hasMatch(username);
-  }
-
-  bool isValidEmail(String email) {
-    final RegExp emailRegExp =
-        RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
-    return emailRegExp.hasMatch(email);
-  }
-
-  bool isValidPassword(String password) {
-    // Update RegExp to allow more special characters
-    final RegExp passwordRegExp = RegExp(
-        r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#\$%\^&\*\(\)_\+\-=\[\]\{\};:,\.<>?~]).{8,}$');
-    return passwordRegExp.hasMatch(password);
   }
 
   @override
@@ -282,7 +265,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             ? null
                             : () {
                                 // Validasi username
-                                if (!isValidUsername(_nameController.text)) {
+                                if (!Validators.isValidUsername(
+                                    _nameController.text)) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                           content: Text(
@@ -290,7 +274,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                   return;
                                 }
                                 // Validasi email
-                                if (!isValidEmail(_emailController.text)) {
+                                if (!Validators.isValidEmail(
+                                    _emailController.text)) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                           content: Text(
@@ -298,7 +283,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   return;
                                 }
                                 // Validasi password
-                                if (!isValidPassword(
+                                if (!Validators.isValidPassword(
                                     _passwordController.text)) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
