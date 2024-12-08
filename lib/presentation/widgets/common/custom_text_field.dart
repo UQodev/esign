@@ -1,5 +1,5 @@
-import 'package:esign/presentation/styles/app_decoration.dart';
-import 'package:esign/presentation/styles/app_text_styles.dart';
+import 'package:esign/core/theme/app_decoration.dart';
+import 'package:esign/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
