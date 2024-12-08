@@ -61,14 +61,17 @@ class AuthRepositoryImpl implements AuthRepository {
       final hashedPassword = _hashPassword(password);
 
       final response = await remoteDataSource.login(email, hashedPassword);
-      final token = _generateToken(response['id']);
+
+      final token = _generateToken(email);
+
+      await remoteDataSource.updateRememberToken(response['id'], token);
 
       final user = User(
         id: response['id'],
         name: response['name'],
         email: response['email'],
         token: token,
-        rememberToken: response['remember_token'],
+        rememberToken: token,
         createdAt: DateTime.parse(response['created_at']),
         updatedAt: DateTime.parse(response['updated_at']),
       );
