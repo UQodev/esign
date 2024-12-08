@@ -1,5 +1,4 @@
-import 'package:esign/injection.dart';
-import 'package:esign/presentation/bloc/auth/authBloc.dart';
+import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/bloc/auth/authEvent.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart';
 import 'package:esign/presentation/layouts/baseLayout.dart';
@@ -63,75 +62,71 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) => BaseLayout(
         showAppBar: false,
         showBackButton: false,
-        body: BlocProvider(
-          create: (context) => getIt<AuthBloc>(),
-          child: BlocConsumer<AuthBloc, AuthState>(
-            listener: _handleAuthState,
-            builder: (context, state) => SingleChildScrollView(
-              child: Container(
-                height: MediaQuery.of(context).size.height,
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Login',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 40),
-                    LoginForm(
-                      emailController: _emailController,
-                      passwordController: _passwordController,
-                      obscurePassword: _obscurePassword,
-                      onTogglePassword: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                      isLoading: _isLoading,
-                      onLogin: _handleLogin,
-                    ),
-                    const SizedBox(height: 20),
-                    TextButton(
-                      onPressed: () {
-                        // Handle forgot password
-                      },
-                      child: const Text('Lupa Password?'),
-                    ),
-                    const SizedBox(height: 20),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              const TextSpan(
-                                text: 'Belum punya akun? ',
-                                style: TextStyle(color: Colors.black),
+        body: BlocConsumer<AuthBloc, AuthState>(
+          listener: _handleAuthState,
+          builder: (context, state) => SingleChildScrollView(
+            child: Container(
+              height: MediaQuery.of(context).size.height,
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Login',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 40),
+                  LoginForm(
+                    emailController: _emailController,
+                    passwordController: _passwordController,
+                    obscurePassword: _obscurePassword,
+                    onTogglePassword: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                    isLoading: _isLoading,
+                    onLogin: _handleLogin,
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      // Handle forgot password
+                    },
+                    child: const Text('Lupa Password?'),
+                  ),
+                  const SizedBox(height: 20),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            const TextSpan(
+                              text: 'Belum punya akun? ',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            TextSpan(
+                              text: 'Daftar di sini',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                decoration: TextDecoration.underline,
                               ),
-                              TextSpan(
-                                text: 'Daftar di sini',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  decoration: TextDecoration.underline,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const RegisterPage(),
-                                      ),
-                                    );
-                                  },
-                              ),
-                            ],
-                          ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const RegisterPage(),
+                                    ),
+                                  );
+                                },
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
