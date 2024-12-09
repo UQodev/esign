@@ -1,8 +1,7 @@
-import 'package:esign/presentation/bloc/auth/authEvent.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart' as app_state;
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/layouts/baseLayout.dart';
-import 'package:esign/presentation/pages/auth/login_page.dart';
+import 'package:esign/presentation/pages/signature/signature_pad.dart';
 import 'package:esign/presentation/widgets/drawer/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,28 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
               userName: state.user.name,
               userEmail: state.user.email,
             ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: TextButton(
-                        onPressed: () {
-                          context.read<AuthBloc>().add(LogoutEvent());
-                          Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                  builder: (context) => const LoginPage()),
-                              (route) => false);
-                        },
-                        child: const Text('Logout')),
-                  ),
-                ],
-              ),
-            ),
+            body: const SignaturePadPage(),
           );
         }
         // Fallback jika tidak ada user
