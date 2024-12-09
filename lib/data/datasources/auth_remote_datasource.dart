@@ -6,6 +6,7 @@ abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String email, String password);
   Future<Map<String, dynamic>> checkAuth();
   Future<void> logout(String? rememberToken);
+  Future<void> updateRememberToken(String id, String token);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -44,9 +45,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'password': password,
       }).single();
 
+      if (response == null) {
+        throw Exception('User not found');
+      }
+
       return response;
     } catch (e) {
       throw Exception('Login failed: $e');
+    }
+  }
+
+  @override
+  Future<void> updateRememberToken(String userId, String token) async {
+    try {
+      await supabase
+          .from('users')
+          .update({'remember_token': token}).match({'id': userId});
+    } catch (e) {
+      throw Exception('Failed to update token: $e');
     }
   }
 
