@@ -1,7 +1,12 @@
 import 'package:esign/core/theme/app_colors.dart';
+import 'package:esign/injection.dart';
 import 'package:esign/presentation/bloc/auth/authEvent.dart';
+import 'package:esign/presentation/bloc/auth/authState.dart';
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
+import 'package:esign/presentation/bloc/profile/profile_bloc.dart';
+import 'package:esign/presentation/bloc/profile/profile_event.dart';
 import 'package:esign/presentation/pages/auth/login_page.dart';
+import 'package:esign/presentation/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,6 +67,18 @@ class AppDrawer extends StatelessWidget {
               title: const Text('Profil'),
               onTap: () {
                 Navigator.of(context);
+                final authState = context.read<AuthBloc>().state;
+                if (authState is AuthSuccess) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider(
+                          create: (context) => getIt<ProfileBloc>()
+                            ..add(LoadProfile(userId: authState.user.id)),
+                          child: const ProfilePage(),
+                        ),
+                      ));
+                }
               },
             ),
             const Divider(),
