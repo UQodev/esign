@@ -1,6 +1,8 @@
 import 'package:esign/domain/entities/user.dart';
 
-abstract class AuthState {}
+abstract class AuthState {
+  const AuthState();
+}
 
 class AuthInitial extends AuthState {}
 
@@ -8,7 +10,7 @@ class AuthLoading extends AuthState {}
 
 class AuthSuccess extends AuthState {
   final User user;
-  AuthSuccess(this.user);
+  const AuthSuccess(this.user);
 }
 
 class AuthError extends AuthState {
