@@ -1,20 +1,36 @@
+import 'package:esign/injection.dart';
+import 'package:esign/presentation/bloc/auth/authState.dart';
+import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/bloc/profile/profile_bloc.dart';
 import 'package:esign/presentation/bloc/profile/profile_event.dart';
 import 'package:esign/presentation/bloc/profile/profile_state.dart';
 import 'package:esign/presentation/layouts/baseLayout.dart';
+import 'package:esign/presentation/widgets/drawer/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => getIt<ProfileBloc>(),
+      child: const ProfilePageContent(),
+    );
+  }
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageContent extends StatefulWidget {
+  const ProfilePageContent({super.key});
+
+  @override
+  State<ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<ProfilePageContent> {
   final _fullNameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   DateTime? _selectedDate;
@@ -69,7 +85,19 @@ class _ProfilePageState extends State<ProfilePage> {
     return BaseLayout(
       showAppBar: true,
       title: 'Profile',
-      body: BlocConsumer(
+      drawer: BlocBuilder<AuthBloc, AuthState>(
+        // Add this
+        builder: (context, state) {
+          if (state is AuthSuccess) {
+            return AppDrawer(
+              userName: state.user.name,
+              userEmail: state.user.email,
+            );
+          }
+          return const SizedBox(); // Fallback empty widget
+        },
+      ),
+      body: BlocConsumer<ProfileBloc, ProfileState>(
         listener: (context, state) {
           if (state is ProfileError) {
             ScaffoldMessenger.of(context)
