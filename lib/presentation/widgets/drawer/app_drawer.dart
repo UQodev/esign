@@ -6,6 +6,7 @@ import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/bloc/profile/profile_bloc.dart';
 import 'package:esign/presentation/bloc/profile/profile_event.dart';
 import 'package:esign/presentation/pages/auth/login_page.dart';
+import 'package:esign/presentation/pages/home_page.dart';
 import 'package:esign/presentation/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -27,7 +28,7 @@ class AppDrawer extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: [
             UserAccountsDrawerHeader(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.secondary,
               ),
               accountName: Text(
@@ -56,14 +57,18 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.home),
+              leading: const Icon(Icons.home),
               title: const Text('Beranda'),
               onTap: () {
                 Navigator.of(context);
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MyHomePage()));
               },
             ),
             ListTile(
-              leading: Icon(Icons.person),
+              leading: const Icon(Icons.person),
               title: const Text('Profil'),
               onTap: () {
                 Navigator.of(context);
