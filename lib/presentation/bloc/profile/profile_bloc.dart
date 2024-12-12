@@ -11,10 +11,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<LoadProfile>((event, emit) async {
       emit(ProfileLoading());
       final result = await repository.getProfile(event.userId);
+      final signatureResult = await repository.getSignature(event.userId);
+
       result.fold(
         (failure) => emit(ProfileError('Failed to load profile')),
-        (profile) =>
-            emit(profile != null ? ProfileLoaded(profile) : ProfileEmpty()),
+        (profile) {
+          if (profile != null) {
+            signatureResult.fold(
+              (failure) => emit(ProfileLoaded(profile: profile)),
+              (signature) => emit(ProfileLoaded(
+                profile: profile,
+                signature: signature,
+              )),
+            );
+          } else {
+            emit(ProfileEmpty());
+          }
+        },
       );
     });
 
@@ -27,9 +40,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         phoneNumber: event.phoneNumber,
         profilePictureUrl: event.profilePictureUrl,
       );
+
       result.fold(
         (failure) => emit(ProfileError('Failed to update profile')),
-        (profile) => emit(ProfileLoaded(profile)),
+        (profile) => emit(ProfileLoaded(profile: profile)),
       );
     });
   }
