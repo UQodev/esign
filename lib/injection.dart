@@ -39,7 +39,10 @@ Future<void> configureDependencies() async {
       () => ProfileRemoteDataSourceImpl(supabase: getIt()));
 
   getIt.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(remoteDataSource: getIt()),
+    () => ProfileRepositoryImpl(
+      remoteDataSource: getIt(),
+      supabase: getIt(),
+    ),
   );
 
   getIt.registerFactory(() => ProfileBloc(getIt()));
