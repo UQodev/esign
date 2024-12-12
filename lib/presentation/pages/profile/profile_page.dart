@@ -7,9 +7,11 @@ import 'package:esign/presentation/bloc/profile/profile_state.dart';
 import 'package:esign/presentation/layouts/baseLayout.dart';
 import 'package:esign/presentation/widgets/drawer/app_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:signature/signature.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -33,6 +35,10 @@ class ProfilePageContent extends StatefulWidget {
 class _ProfilePageContentState extends State<ProfilePageContent> {
   final _fullNameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
+  final SignatureController _signatureController = SignatureController(
+      penStrokeWidth: 3,
+      penColor: Colors.black,
+      exportBackgroundColor: Colors.white);
   DateTime? _selectedDate;
   String? _profilePictureUrl;
   bool _isEditing = false;
@@ -41,6 +47,7 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
   void dispose() {
     _fullNameController.dispose();
     _phoneNumberController.dispose();
+    _signatureController.dispose();
     super.dispose();
   }
 
@@ -67,17 +74,101 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
   void _saveProfile() {
     if (!_isEditing) return;
 
-    context.read<ProfileBloc>().add(
-          UpdateProfile(
-            userId: 'current_user_id', // Get from AuthBloc
-            fullName: _fullNameController.text,
-            birthDate: _selectedDate,
-            phoneNumber: _phoneNumberController.text,
-            profilePictureUrl: _profilePictureUrl,
-          ),
-        );
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess) {
+      context.read<ProfileBloc>().add(
+            UpdateProfile(
+              userId: authState.user.id,
+              fullName: _fullNameController.text,
+              birthDate: _selectedDate,
+              phoneNumber: _phoneNumberController.text,
+              profilePictureUrl: _profilePictureUrl,
+            ),
+          );
+    }
 
     setState(() => _isEditing = false);
+  }
+
+  Future<void> _saveSignature() async {
+    if (_signatureController.isNotEmpty) return;
+
+    final bytes = await _signatureController.toPngBytes();
+    if (bytes != null) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthSuccess) {
+        context.read<ProfileBloc>().add(
+              UpdateSignature(userId: authState.user.id, signatureBytes: bytes),
+            );
+      }
+    }
+  }
+
+  Widget _buildSignatureSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Digital Signature',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          height: 200,
+          child:
+              BlocBuilder<ProfileBloc, ProfileState>(builder: (context, state) {
+            if (state is ProfileLoaded &&
+                state.signature?.signatureUrl != null) {
+              return Stack(
+                children: [
+                  Image.network(
+                    state.signature!.signatureUrl!,
+                    fit: BoxFit.contain,
+                  ),
+                  if (_isEditing)
+                    Positioned.fill(
+                      child: Signature(
+                        controller: _signatureController,
+                        backgroundColor: Colors.transparent,
+                      ),
+                    ),
+                ],
+              );
+            }
+            return _isEditing
+                ? Signature(
+                    controller: _signatureController,
+                    backgroundColor: Colors.white,
+                  )
+                : const Center(
+                    child: Text('No Signature Found'),
+                  );
+          }),
+        ),
+        if (_isEditing) ...[
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => _signatureController.clear(),
+                icon: const Icon(Icons.clear),
+                label: const Text('Clear'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => _saveSignature,
+                icon: const Icon(Icons.save),
+                label: const Text('Save'),
+              ),
+            ],
+          ),
+        ]
+      ],
+    );
   }
 
   @override
@@ -187,6 +278,10 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 24),
+
+                _buildSignatureSection(context), // Add this
+
                 const SizedBox(height: 24),
 
                 // Action Buttons
