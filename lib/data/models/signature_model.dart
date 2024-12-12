@@ -10,7 +10,7 @@ class SignatureModel extends Signature {
   }) : super(
           id: id,
           userId: userId,
-          sigantureUrl: signatureUrl,
+          signatureUrl: signatureUrl,
           createdAt: createdAt,
           updatedAt: updatedAt,
         );
@@ -30,7 +30,7 @@ class SignatureModel extends Signature {
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_id': userId,
-        'signature_url': sigantureUrl,
+        'signature_url': signatureUrl,
         'created_at': createdAt?.toIso8601String(),
         'updated_at': updatedAt?.toIso8601String(),
       };
