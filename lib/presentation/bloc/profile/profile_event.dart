@@ -39,3 +39,21 @@ class UpdateSignature extends ProfileEvent {
     required this.signatureBytes,
   });
 }
+
+class UpdateProfileAndSignature extends ProfileEvent {
+  final String userId;
+  final String? fullName;
+  final DateTime? birthDate;
+  final String? phoneNumber;
+  final String? profilePictureUrl;
+  final Uint8List? signatureBytes;
+
+  UpdateProfileAndSignature({
+    required this.userId,
+    this.fullName,
+    this.birthDate,
+    this.phoneNumber,
+    this.profilePictureUrl,
+    this.signatureBytes,
+  });
+}
