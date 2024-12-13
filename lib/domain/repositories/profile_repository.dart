@@ -17,4 +17,12 @@ abstract class ProfileRepository {
   Future<Either<Failure, Signature?>> getSignature(String userId);
   Future<Either<Failure, void>> updateSignature(
       String userId, Uint8List signatureBytes);
+  Future<Either<Failure, Profile>> updateProfileAndSignature({
+    required String userId,
+    required String? fullName,
+    required DateTime? birthDate,
+    required String? phoneNumber,
+    required String? profilePictureUrl,
+    Uint8List? signatureBytes,
+  });
 }
