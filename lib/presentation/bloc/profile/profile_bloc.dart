@@ -10,6 +10,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc(this.repository) : super(ProfileInitial()) {
     on<LoadProfile>((event, emit) async {
       emit(ProfileLoading());
+
       final result = await repository.getProfile(event.userId);
       final signatureResult = await repository.getSignature(event.userId);
 
@@ -33,6 +34,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     on<UpdateProfile>((event, emit) async {
       emit(ProfileLoading());
+      print('Updating profile...');
       final result = await repository.updateProfile(
         userId: event.userId,
         fullName: event.fullName,
@@ -42,8 +44,50 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       );
 
       result.fold(
+        (failure) {
+          print('Update failed: $failure'); // Debug log
+          emit(ProfileError('Failed to update profile: ${failure.toString()}'));
+        },
+        (profile) {
+          print('Profile updated successfully'); // Debug log
+          add(LoadProfile(userId: event.userId));
+        },
+      );
+    });
+
+    on<UpdateSignature>((event, emit) async {
+      emit(ProfileLoading());
+
+      final result =
+          await repository.updateSignature(event.userId, event.signatureBytes);
+
+      result.fold(
+        (failure) => emit(ProfileError('Failed to update signature')),
+        (_) {
+          // Reload profile and signature after update
+          add(LoadProfile(userId: event.userId));
+        },
+      );
+    });
+
+    on<UpdateProfileAndSignature>((event, emit) async {
+      emit(ProfileLoading());
+
+      final result = await repository.updateProfileAndSignature(
+        userId: event.userId,
+        fullName: event.fullName,
+        birthDate: event.birthDate,
+        phoneNumber: event.phoneNumber,
+        profilePictureUrl: event.profilePictureUrl,
+        signatureBytes: event.signatureBytes,
+      );
+
+      result.fold(
         (failure) => emit(ProfileError('Failed to update profile')),
-        (profile) => emit(ProfileLoaded(profile: profile)),
+        (profile) {
+          // Reload profile after update
+          add(LoadProfile(userId: event.userId));
+        },
       );
     });
   }
