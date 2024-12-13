@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
@@ -41,6 +42,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
     required String? profilePictureUrl,
   }) async {
     try {
+      print('Starting profile update...'); // Debug
+
+      // Check if profile exists first
+      final existingProfile = await supabase
+          .from('profiles')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      print('Existing profile: $existingProfile'); // Debug
+
       final data = {
         'user_id': userId,
         'full_name': fullName,
@@ -49,10 +61,21 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'profile_picture_url': profilePictureUrl,
       };
 
-      final response = await remoteDataSource.updateProfile(data);
-      final profile = ProfileModel.fromJson(response);
-      return Right(profile);
-    } catch (e) {
+      final response = existingProfile == null
+          ? await supabase.from('profiles').insert(data).select().single()
+          : await supabase
+              .from('profiles')
+              .update(data)
+              .eq('user_id', userId)
+              .select()
+              .single();
+
+      print('Update response: $response'); // Debug
+
+      return Right(ProfileModel.fromJson(response));
+    } catch (e, stackTrace) {
+      print('Error updating profile: $e'); // Debug
+      print('Stack trace: $stackTrace'); // Debug
       return Left(ServerFailure());
     }
   }
@@ -102,6 +125,58 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
       return Right(signature);
     } catch (e) {
+      return Left(ServerFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Profile>> updateProfileAndSignature({
+    required String userId,
+    required String? fullName,
+    required DateTime? birthDate,
+    required String? phoneNumber,
+    required String? profilePictureUrl,
+    Uint8List? signatureBytes,
+  }) async {
+    try {
+      // Update profile first
+      final existingProfile = await supabase
+          .from('profiles')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      final profileData = {
+        'full_name': fullName,
+        'birth_date': birthDate?.toIso8601String(),
+        'phone_number': phoneNumber,
+        'profile_picture_url': profilePictureUrl,
+      };
+
+      final profileResponse = existingProfile == null
+          ? await supabase
+              .from('profiles')
+              .insert({'user_id': userId, ...profileData})
+              .select()
+              .single()
+          : await supabase
+              .from('profiles')
+              .update(profileData)
+              .eq('user_id', userId)
+              .select()
+              .single();
+
+      // Handle signature update
+      if (signatureBytes != null) {
+        await supabase.from('signatures').upsert({
+          'user_id': userId,
+          'signature_url': base64Encode(signatureBytes),
+        });
+      }
+
+      return Right(ProfileModel.fromJson(profileResponse));
+    } catch (e) {
+      print('Error updating profile and signature: $e');
       return Left(ServerFailure());
     }
   }
