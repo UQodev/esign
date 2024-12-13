@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:esign/injection.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart';
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
@@ -44,6 +47,15 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
   bool _isEditing = false;
 
   @override
+  void initState() {
+    super.initState();
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthSuccess) {
+      context.read<ProfileBloc>().add(LoadProfile(userId: authState.user.id));
+    }
+  }
+
+  @override
   void dispose() {
     _fullNameController.dispose();
     _phoneNumberController.dispose();
@@ -71,32 +83,59 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
     }
   }
 
-  void _saveProfile() {
+  void _saveProfile() async {
     if (!_isEditing) return;
 
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthSuccess) {
+      // Get signature bytes if changed
+      Uint8List? signatureBytes;
+      if (_signatureController.isNotEmpty) {
+        signatureBytes = await _signatureController.toPngBytes();
+      }
+
+      // Save both profile and signature
       context.read<ProfileBloc>().add(
-            UpdateProfile(
+            UpdateProfileAndSignature(
               userId: authState.user.id,
-              fullName: _fullNameController.text,
+              fullName: _fullNameController.text.isNotEmpty
+                  ? _fullNameController.text
+                  : null,
               birthDate: _selectedDate,
-              phoneNumber: _phoneNumberController.text,
+              phoneNumber: _phoneNumberController.text.isNotEmpty
+                  ? _phoneNumberController.text
+                  : null,
               profilePictureUrl: _profilePictureUrl,
+              signatureBytes: signatureBytes,
             ),
           );
-    }
 
-    setState(() => _isEditing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Saving profile...')),
+        );
+      }
+
+      setState(() => _isEditing = false);
+    }
   }
 
   Future<void> _saveSignature() async {
-    if (_signatureController.isNotEmpty) return;
+    print('Saving signature...');
+
+    if (_signatureController.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please draw your signature')),
+      );
+      return;
+    }
+    ;
 
     final bytes = await _signatureController.toPngBytes();
     if (bytes != null) {
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthSuccess) {
+        print('Uploading signature...');
         context.read<ProfileBloc>().add(
               UpdateSignature(userId: authState.user.id, signatureBytes: bytes),
             );
@@ -119,52 +158,46 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
             borderRadius: BorderRadius.circular(10),
           ),
           height: 200,
-          child:
-              BlocBuilder<ProfileBloc, ProfileState>(builder: (context, state) {
-            if (state is ProfileLoaded &&
-                state.signature?.signatureUrl != null) {
-              return Stack(
-                children: [
-                  Image.network(
-                    state.signature!.signatureUrl!,
-                    fit: BoxFit.contain,
-                  ),
-                  if (_isEditing)
-                    Positioned.fill(
-                      child: Signature(
-                        controller: _signatureController,
-                        backgroundColor: Colors.transparent,
-                      ),
+          child: BlocBuilder<ProfileBloc, ProfileState>(
+            builder: (context, state) {
+              if (state is ProfileLoaded &&
+                  state.signature?.signatureUrl != null) {
+                final base64Data = state.signature!.signatureUrl!.split(',')[1];
+                return Stack(
+                  children: [
+                    Image.memory(
+                      base64Decode(base64Data),
+                      fit: BoxFit.contain,
                     ),
-                ],
-              );
-            }
-            return _isEditing
-                ? Signature(
-                    controller: _signatureController,
-                    backgroundColor: Colors.white,
-                  )
-                : const Center(
-                    child: Text('No Signature Found'),
-                  );
-          }),
+                    if (_isEditing)
+                      Positioned.fill(
+                        child: Signature(
+                          controller: _signatureController,
+                          backgroundColor: Colors.transparent,
+                        ),
+                      ),
+                  ],
+                );
+              }
+              return _isEditing
+                  ? Signature(
+                      controller: _signatureController,
+                      backgroundColor: Colors.white,
+                    )
+                  : const Center(
+                      child: Text('No Signature Found'),
+                    );
+            },
+          ),
         ),
         if (_isEditing) ...[
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => _signatureController.clear(),
-                icon: const Icon(Icons.clear),
-                label: const Text('Clear'),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _saveSignature,
-                icon: const Icon(Icons.save),
-                label: const Text('Save'),
-              ),
-            ],
+          Center(
+            child: ElevatedButton.icon(
+              onPressed: () => _signatureController.clear(),
+              icon: const Icon(Icons.clear),
+              label: const Text('Clear'),
+            ),
           ),
         ]
       ],
@@ -177,7 +210,6 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
       showAppBar: true,
       title: 'Profile',
       drawer: BlocBuilder<AuthBloc, AuthState>(
-        // Add this
         builder: (context, state) {
           if (state is AuthSuccess) {
             return AppDrawer(
@@ -193,6 +225,17 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
           if (state is ProfileError) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.message)));
+          }
+          if (state is ProfileLoaded) {
+            setState(() {
+              _fullNameController.text = state.profile.fullName ?? '';
+              _selectedDate = state.profile.birthDate;
+              _phoneNumberController.text = state.profile.phoneNumber ?? '';
+              _profilePictureUrl = state.profile.profilePictureUrl;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Berhasil mengupdate profile')));
           }
         },
         builder: (context, state) {
