@@ -45,6 +45,8 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
   DateTime? _selectedDate;
   String? _profilePictureUrl;
   bool _isEditing = false;
+  bool _tempCleared = false; // Add this for temporary clear state
+  bool _isLoading = true; // Add this for temporary clear state
 
   @override
   void initState() {
@@ -65,9 +67,34 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 500,
+      maxHeight: 500,
+      imageQuality: 100,
+    );
     if (image != null) {
-      // TODO: Upload image and get URL
+      try {
+        setState(() {
+          _isLoading = true;
+        });
+        final bytes = await image.readAsBytes();
+        final base64Image = 'data:image/png;base64,${base64Encode(bytes)}';
+
+        setState(() {
+          _profilePictureUrl = base64Image;
+          _isLoading = false;
+        });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to pick image: $e')),
+          );
+        }
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -145,16 +172,14 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
 
   Widget _buildSignatureSection(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text(
-          'Digital Signature',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        const Text('Your Signature',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
+            // border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(10),
           ),
           height: 200,
@@ -163,45 +188,73 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
               if (state is ProfileLoaded &&
                   state.signature?.signatureUrl != null) {
                 final base64Data = state.signature!.signatureUrl!.split(',')[1];
-                return Stack(
-                  children: [
-                    Image.memory(
-                      base64Decode(base64Data),
-                      fit: BoxFit.contain,
-                    ),
-                    if (_isEditing)
-                      Positioned.fill(
-                        child: Signature(
-                          controller: _signatureController,
-                          backgroundColor: Colors.transparent,
-                        ),
-                      ),
-                  ],
+
+                // If editing and not cleared - show original signature
+                if (_isEditing && !_tempCleared) {
+                  return Signature(
+                    controller: _signatureController,
+                    backgroundColor: Colors.white,
+                    height: 200,
+                    width: MediaQuery.of(context).size.width,
+                  );
+                }
+
+                // If editing and cleared - show empty canvas
+                if (_isEditing && _tempCleared) {
+                  return Signature(
+                    controller: _signatureController,
+                    backgroundColor: Colors.white,
+                    height: 200,
+                    width: MediaQuery.of(context).size.width,
+                  );
+                }
+
+                // Not editing - show existing signature
+                return Center(
+                  child: Image.memory(
+                    base64Decode(base64Data),
+                    fit: BoxFit.contain,
+                  ),
                 );
               }
-              return _isEditing
-                  ? Signature(
-                      controller: _signatureController,
-                      backgroundColor: Colors.white,
-                    )
-                  : const Center(
-                      child: Text('No Signature Found'),
-                    );
+
+              // No existing signature - show empty canvas
+              return Signature(
+                controller: _signatureController,
+                backgroundColor: Colors.white,
+                height: 200,
+                width: MediaQuery.of(context).size.width,
+              );
             },
           ),
         ),
         if (_isEditing) ...[
-          const SizedBox(height: 8),
-          Center(
-            child: ElevatedButton.icon(
-              onPressed: () => _signatureController.clear(),
-              icon: const Icon(Icons.clear),
-              label: const Text('Clear'),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _tempCleared = true;
+                    _signatureController.clear();
+                  });
+                },
+                icon: const Icon(Icons.clear),
+                label: const Text('Clear'),
+              ),
             ),
           ),
         ]
       ],
     );
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _isEditing = false;
+      _tempCleared = false;
+      _signatureController.clear();
+    });
   }
 
   @override
@@ -247,7 +300,6 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Profile Picture
                 GestureDetector(
                   onTap: _isEditing ? _pickImage : null,
                   child: Stack(
@@ -255,10 +307,12 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
                       CircleAvatar(
                         radius: 50,
                         backgroundImage: _profilePictureUrl != null
-                            ? NetworkImage(_profilePictureUrl!)
+                            ? MemoryImage(
+                                base64Decode(_profilePictureUrl!.split(',')[1]))
                             : null,
                         child: _profilePictureUrl == null
-                            ? const Icon(Icons.person, size: 50)
+                            ? const Icon(Icons.person,
+                                size: 50, color: Colors.grey)
                             : null,
                       ),
                       if (_isEditing)
@@ -323,7 +377,7 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSignatureSection(context), // Add this
+                _buildSignatureSection(context),
 
                 const SizedBox(height: 24),
 
@@ -335,7 +389,7 @@ class _ProfilePageContentState extends State<ProfilePageContent> {
                       ElevatedButton.icon(
                         onPressed: () => setState(() => _isEditing = true),
                         icon: const Icon(Icons.edit),
-                        label: const Text('Edit Profile'),
+                        label: const Text('Edit'),
                       )
                     else ...[
                       ElevatedButton.icon(
