@@ -166,14 +166,20 @@ class ProfileRepositoryImpl implements ProfileRepository {
               .select()
               .single();
 
-      // Handle signature update
+      // Handle signature update using upsert
       if (signatureBytes != null) {
-        await supabase.from('signatures').upsert({
+        final signatureData = {
           'user_id': userId,
-          'signature_url': base64Encode(signatureBytes),
-        });
+          'signature_url':
+              'data:image/png;base64,${base64Encode(signatureBytes)}',
+        };
+
+        await supabase
+            .from('signatures')
+            .upsert(signatureData, onConflict: 'user_id');
       }
 
+      // Reload profile and signature
       return Right(ProfileModel.fromJson(profileResponse));
     } catch (e) {
       print('Error updating profile and signature: $e');
