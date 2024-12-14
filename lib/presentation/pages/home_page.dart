@@ -1,5 +1,7 @@
+import 'package:esign/injection.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart' as app_state;
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
+import 'package:esign/presentation/bloc/profile/profile_bloc.dart';
 import 'package:esign/presentation/layouts/baseLayout.dart';
 import 'package:esign/presentation/pages/signature/signature_pad.dart';
 import 'package:esign/presentation/widgets/drawer/app_drawer.dart';
@@ -19,17 +21,19 @@ class _MyHomePageState extends State<MyHomePage> {
     return BlocBuilder<AuthBloc, app_state.AuthState>(
       builder: (context, state) {
         if (state is app_state.AuthSuccess) {
-          return BaseLayout(
-            showAppBar: true,
-            title: 'E-Sign',
-            drawer: AppDrawer(
-              userName: state.user.name,
-              userEmail: state.user.email,
-            ),
-            body: const SignaturePadPage(),
+          return BlocProvider(
+            create: (context) => getIt<ProfileBloc>(),
+            child: BaseLayout(
+                showAppBar: true,
+                title: 'E-Sign',
+                drawer: AppDrawer(
+                  userName: state.user.name,
+                  userEmail: state.user.email,
+                ),
+                body: Center()),
           );
         }
-        // Fallback jika tidak ada user
+        // Fallback if no user
         return const BaseLayout(
           showAppBar: true,
           title: 'E-Sign',
