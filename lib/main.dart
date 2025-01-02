@@ -1,4 +1,7 @@
 import 'package:esign/core/config/supabase_config.dart';
+import 'package:esign/core/routes/routes_generator.dart';
+import 'package:esign/core/routes/routes_name.dart';
+import 'package:esign/core/routes/routes_oberserver.dart';
 import 'package:esign/injection.dart';
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/bloc/auth/authEvent.dart';
@@ -32,6 +35,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'E-Sign',
         debugShowCheckedModeBanner: false,
+        initialRoute: RouteName.login,
+        onGenerateRoute: RouteGenerator.generateRoute,
+        navigatorObservers: [CustomRouteObserver()],
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             if (state is AuthSuccess) {
