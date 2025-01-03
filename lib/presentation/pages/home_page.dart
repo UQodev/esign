@@ -1,9 +1,10 @@
 import 'package:esign/injection.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart' as app_state;
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
+import 'package:esign/presentation/bloc/documents.dart/document_bloc.dart';
 import 'package:esign/presentation/bloc/profile/profile_bloc.dart';
 import 'package:esign/presentation/layouts/baseLayout.dart';
-import 'package:esign/presentation/pages/signature/signature_pad.dart';
+import 'package:esign/presentation/pages/documents/document_list_page.dart';
 import 'package:esign/presentation/widgets/drawer/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,13 +25,41 @@ class _MyHomePageState extends State<MyHomePage> {
           return BlocProvider(
             create: (context) => getIt<ProfileBloc>(),
             child: BaseLayout(
-                showAppBar: true,
-                title: 'E-Sign',
-                drawer: AppDrawer(
-                  userName: state.user.name,
-                  userEmail: state.user.email,
+              showAppBar: true,
+              title: 'E-Sign',
+              drawer: AppDrawer(
+                userName: state.user.name,
+                userEmail: state.user.email,
+              ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => getIt<DocumentBloc>(),
+                              child: DocumentListPage(),
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload Document to Sign'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                body: Center()),
+              ),
+            ),
           );
         }
         // Fallback if no user
