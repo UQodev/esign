@@ -1,9 +1,9 @@
+import 'package:esign/core/routes/routes_name.dart';
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/bloc/auth/authEvent.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart';
 import 'package:esign/presentation/layouts/baseLayout.dart';
 import 'package:esign/presentation/pages/auth/register_page.dart';
-import 'package:esign/presentation/pages/home_page.dart';
 import 'package:esign/presentation/widgets/auth/login_form.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -31,18 +31,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleAuthState(BuildContext context, AuthState state) {
-    if (state is AuthLoading) {
-      setState(() => _isLoading = true);
-    } else {
-      setState(() => _isLoading = false);
+    if (state is AuthError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(state.message)),
+      );
     }
-
     if (state is AuthSuccess) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const MyHomePage()));
-    } else if (state is AuthError) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(state.message)));
+      Navigator.pushReplacementNamed(context, RouteName.home);
     }
   }
 
