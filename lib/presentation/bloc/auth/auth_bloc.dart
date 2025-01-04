@@ -1,6 +1,8 @@
+import 'package:esign/core/routes/routes_name.dart';
 import 'package:esign/domain/repositories/auth_repository.dart';
 import 'package:esign/presentation/bloc/auth/authEvent.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
@@ -42,14 +44,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<LogoutEvent>((event, emit) async {
-      emit(AuthLoading());
-
-      final result = await repository.logout();
-
-      result.fold(
-        (failure) => emit(AuthError(failure.message)),
-        (_) => emit(AuthInitial()),
-      );
+      try {
+        emit(AuthInitial());
+        Navigator.pushNamedAndRemoveUntil(
+            event.context, RouteName.login, (route) => false);
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
     });
   }
 }
