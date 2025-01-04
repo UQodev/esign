@@ -1,18 +1,14 @@
 import 'dart:convert';
 
+import 'package:esign/core/routes/routes_name.dart';
 import 'package:esign/core/theme/app_colors.dart';
-import 'package:esign/injection.dart';
 import 'package:esign/presentation/bloc/auth/authEvent.dart';
 import 'package:esign/presentation/bloc/auth/authState.dart';
 import 'package:esign/presentation/bloc/auth/auth_bloc.dart';
 import 'package:esign/presentation/bloc/profile/profile_bloc.dart';
 import 'package:esign/presentation/bloc/profile/profile_event.dart';
 import 'package:esign/presentation/bloc/profile/profile_state.dart';
-import 'package:esign/presentation/pages/auth/login_page.dart';
-import 'package:esign/presentation/pages/home_page.dart';
-import 'package:esign/presentation/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -27,7 +23,7 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
-  String? _profilePictureUrl;
+  // String? _profilePictureUrl;
 
   @override
   void initState() {
@@ -89,11 +85,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   leading: const Icon(Icons.home),
                   title: const Text('Beranda'),
                   onTap: () {
-                    Navigator.of(context);
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const MyHomePage()));
+                    Navigator.pushReplacementNamed(context, RouteName.home);
                   },
                 ),
                 ListTile(
@@ -103,15 +95,8 @@ class _AppDrawerState extends State<AppDrawer> {
                     Navigator.of(context);
                     final authState = context.read<AuthBloc>().state;
                     if (authState is AuthSuccess) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BlocProvider(
-                              create: (context) => getIt<ProfileBloc>()
-                                ..add(LoadProfile(userId: authState.user.id)),
-                              child: const ProfilePage(),
-                            ),
-                          ));
+                      Navigator.pushNamed(context, RouteName.profile,
+                          arguments: authState.user.id);
                     }
                   },
                 ),
@@ -123,13 +108,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     style: TextStyle(color: Colors.red),
                   ),
                   onTap: () {
-                    context.read<AuthBloc>().add(LogoutEvent());
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
-                      ),
-                      (route) => false,
-                    );
+                    context.read<AuthBloc>().add(LogoutEvent(context));
                   },
                 ),
               ],
