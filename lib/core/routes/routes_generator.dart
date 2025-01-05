@@ -1,11 +1,15 @@
 import 'package:esign/core/routes/routes_name.dart';
 import 'package:esign/domain/entities/document.dart';
+import 'package:esign/injection.dart';
+import 'package:esign/presentation/bloc/profile/profile_bloc.dart';
+import 'package:esign/presentation/bloc/profile/profile_event.dart';
 import 'package:esign/presentation/pages/auth/login_page.dart';
 import 'package:esign/presentation/pages/home_page.dart';
 import 'package:esign/presentation/pages/documents/document_list_page.dart';
 import 'package:esign/presentation/pages/documents/document_sign_page.dart';
 import 'package:esign/presentation/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -16,7 +20,9 @@ class RouteGenerator {
 
     switch (settings.name) {
       case RouteName.login:
-        return MaterialPageRoute(builder: (_) => const LoginPage());
+        return MaterialPageRoute(
+            settings: const RouteSettings(name: RouteName.login),
+            builder: (_) => const LoginPage());
 
       case RouteName.home:
         return MaterialPageRoute(builder: (_) => const MyHomePage());
@@ -25,7 +31,13 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => DocumentListPage());
 
       case RouteName.profile:
-        return MaterialPageRoute(builder: (_) => const ProfilePage());
+        return MaterialPageRoute(
+            settings: const RouteSettings(name: RouteName.profile),
+            builder: (_) => BlocProvider(
+                  create: (context) => getIt<ProfileBloc>()
+                    ..add(LoadProfile(userId: args as String)),
+                  child: const ProfilePage(),
+                ));
 
       case RouteName.documentSign:
         if (args is Document) {
